@@ -15,4 +15,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "GridPagerLayoutManager"
 include(":app")
- 
+include(":library")
