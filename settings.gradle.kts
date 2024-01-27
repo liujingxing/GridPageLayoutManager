@@ -10,9 +10,10 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven(url = "https://jitpack.io")
     }
 }
 
-rootProject.name = "GridPagerLayoutManager"
+rootProject.name = "GridPageLayoutManager"
 include(":app")
 include(":library")
