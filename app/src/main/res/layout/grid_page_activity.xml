@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#C6BF7E">
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_layout"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="100dp"
+            android:background="#88ff0000"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tabIndicator="@drawable/shape_tab_indicator"
+            app:tabIndicatorColor="@color/white"
+            app:tabIndicatorFullWidth="false"
+            app:tabIndicatorHeight="5dp"
+            app:tabMinWidth="50dp"
+            app:tabMode="scrollable"
+            app:tabSelectedTextColor="@color/white"
+            app:tabTextColor="#aaffffff" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:background="#88ff0000"
+            android:orientation="horizontal"
+            app:columnCount="4"
+            app:layoutManager="androidx.recyclerview.widget.GridPageLayoutManager"
+            app:layout_constraintTop_toBottomOf="@id/tab_layout"
+            app:reverseLayout="false"
+            app:rowCount="2"
+            tools:itemCount="5" />
+
+        <com.ljx.view.IndicatorView
+            android:id="@+id/indicator_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingVertical="10dp"
+            android:paddingHorizontal="10dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/recycler_view"
+            app:slide_mode="worm"
+            app:slider_checked_color="#FFEB3B"
+            app:slider_gap="5dp"
+            app:slider_normal_color="#056571"
+            app:slider_primary_checked_size="12dp"
+            app:slider_primary_size="6dp"
+            app:slider_secondary_size="6dp"
+            tools:slider_count="5" />
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintTop_toBottomOf="@id/indicator_view">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/horizontal_guide_line"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintGuide_percent="0.5" />
+
+                <LinearLayout
+                    android:id="@+id/ll_skip"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <Button
+                        android:id="@+id/bt_first_page"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="首页" />
+
+                    <Button
+                        android:id="@+id/bt_previous_page"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="上一页" />
+
+                    <Button
+                        android:id="@+id/bt_next_page"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="下一页" />
+
+                    <Button
+                        android:id="@+id/bt_last_page"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="尾页" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/ll_rows"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical|start"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="10dp"
+                    app:layout_constraintTop_toBottomOf="@id/ll_skip">
+
+                    <TextView
+                        android:id="@+id/tv_primary_size"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="行数:"
+                        android:textColor="#000000"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:id="@+id/iv_rows_minus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="10dp"
+                        android:src="@drawable/minus" />
+
+                    <EditText
+                        android:id="@+id/et_rows"
+                        android:layout_width="38dp"
+                        android:layout_height="30dp"
+                        android:background="@drawable/corners18_fafafa"
+                        android:gravity="center"
+                        android:importantForAutofill="no"
+                        android:inputType="number"
+                        android:text="2"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:id="@+id/iv_rows_plus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="10dp"
+                        android:src="@drawable/plus" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/ll_columns"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical|start"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="10dp"
+                    app:layout_constraintLeft_toLeftOf="@id/horizontal_guide_line"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/ll_rows">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="列数:"
+                        android:textColor="#000000"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        app:layout_constraintLeft_toLeftOf="@id/horizontal_guide_line"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="@id/tv_primary_size" />
+
+                    <ImageView
+                        android:id="@+id/iv_columns_minus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="10dp"
+                        android:src="@drawable/minus" />
+
+                    <EditText
+                        android:id="@+id/et_columns"
+                        android:layout_width="38dp"
+                        android:layout_height="30dp"
+                        android:background="@drawable/corners18_fafafa"
+                        android:gravity="center"
+                        android:importantForAutofill="no"
+                        android:inputType="number"
+                        android:text="4"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:id="@+id/iv_columns_plus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="10dp"
+                        android:src="@drawable/plus" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/ll_padding"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical|start"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="10dp"
+                    app:layout_constraintTop_toBottomOf="@id/ll_rows">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Padding: "
+                        android:textColor="#000000"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        app:layout_constraintLeft_toLeftOf="@id/horizontal_guide_line"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="@id/tv_primary_size" />
+
+                    <ImageView
+                        android:id="@+id/iv_padding_minus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="10dp"
+                        android:src="@drawable/minus" />
+
+                    <EditText
+                        android:id="@+id/et_padding"
+                        android:layout_width="38dp"
+                        android:layout_height="30dp"
+                        android:background="@drawable/corners18_fafafa"
+                        android:gravity="center"
+                        android:importantForAutofill="no"
+                        android:inputType="number"
+                        android:text="0"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:id="@+id/iv_padding_plus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="10dp"
+                        android:src="@drawable/plus" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="10dp"
+                        android:text="(dp)"
+                        android:textColor="@android:color/holo_red_dark" />
+
+
+                    <CheckBox
+                        android:id="@+id/cb_padding"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="ClipPadding" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tv_orientation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="10dp"
+                    android:text="Orientation"
+                    android:textColor="#000000"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/ll_padding" />
+
+                <RadioGroup
+                    android:id="@+id/rg_orientation"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="10dp"
+                    app:layout_constraintLeft_toLeftOf="@id/tv_orientation"
+                    app:layout_constraintTop_toBottomOf="@id/tv_orientation">
+
+                    <RadioButton
+                        android:id="@+id/rb_horizontal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="15dp"
+                        android:checked="true"
+                        android:text="Horizontal"
+                        android:textSize="16sp" />
+
+                    <RadioButton
+                        android:id="@+id/rb_vertical"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="15dp"
+                        android:text="Vertical"
+                        android:textSize="16sp" />
+
+                </RadioGroup>
+
+                <TextView
+                    android:id="@+id/tv_layout_direction"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="10dp"
+                    android:text="LayoutDirection"
+                    android:textColor="#000000"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="@id/horizontal_guide_line"
+                    app:layout_constraintTop_toBottomOf="@id/rg_orientation" />
+
+                <RadioGroup
+                    android:id="@+id/rg_layout_direction"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="10dp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toLeftOf="@id/horizontal_guide_line"
+                    app:layout_constraintTop_toBottomOf="@id/tv_layout_direction">
+
+                    <RadioButton
+                        android:id="@+id/rb_ltr"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:checked="true"
+                        android:text="LTR"
+                        android:textSize="16sp" />
+
+                    <RadioButton
+                        android:id="@+id/rb_rtl"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="RTL"
+                        android:textSize="16sp" />
+
+                </RadioGroup>
+
+                <TextView
+                    android:id="@+id/tv_reverse_layout"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:text="ReverseLayout"
+                    android:textColor="#000000"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    app:layout_constraintLeft_toLeftOf="@id/horizontal_guide_line"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/tv_layout_direction" />
+
+                <RadioGroup
+                    android:id="@+id/rg_reverseLayout"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="10dp"
+                    app:layout_constraintLeft_toLeftOf="@id/horizontal_guide_line"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tv_reverse_layout">
+
+                    <RadioButton
+                        android:id="@+id/rb_yes"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="15dp"
+                        android:text="true"
+                        android:textSize="16sp" />
+
+                    <RadioButton
+                        android:id="@+id/rb_no"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="15dp"
+                        android:checked="true"
+                        android:text="false"
+                        android:textSize="16sp" />
+
+                </RadioGroup>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.core.widget.NestedScrollView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
