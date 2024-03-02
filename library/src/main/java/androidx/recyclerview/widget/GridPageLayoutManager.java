@@ -86,6 +86,8 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
     private int currentPage = 0;
     private boolean reverseLayout;
     private boolean shouldReverseLayout = false;
+    private boolean lastShouldReverseLayout = false;
+    private boolean configChange = false;
     private Adapter<?> adapter;
     private TabLayoutObserver tabLayoutMediator;
     private IndicatorObserver indicatorObserver;
@@ -231,6 +233,10 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
         } else {
             shouldReverseLayout = !reverseLayout;
         }
+        if (shouldReverseLayout != lastShouldReverseLayout) {
+            configChange = true;
+            lastShouldReverseLayout = shouldReverseLayout;
+        }
     }
 
     public void attach(IndicatorView indicatorView) {
@@ -330,19 +336,56 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
         int spanCount = orientation == RecyclerView.VERTICAL ? columnCount : rowCount;
         ensureViewSet(spanCount);
         detachAndScrapAttachedViews(recycler);
-        if (shouldReverseLayout) {
+        int startOffset; //左边、上边位置
+        int endOffset;  //右边、下边位置
+        layoutState.mNoRecycleSpace = 0;
+        if (mAnchorInfo.mLayoutFromEnd) {
+            //mAnchorInfo.mCoordinate位置开始，从右往左、从下往上布局
             updateLayoutStateToFillStart(mAnchorInfo);
+            //增加额外填充空间，是的填充空间等于父View的可用空间
+            int extraFillSpace = orientationHelper.getTotalSpace() - layoutState.mAvailable;
+            if (extraFillSpace > 0) {
+                layoutState.mExtraFillSpace = extraFillSpace;
+            }
+            endOffset = mAnchorInfo.mCoordinate;
+            fill(recycler, layoutState, state, false);
+            startOffset = layoutState.mOffset;
         } else {
+            //mAnchorInfo.mCoordinate位置开始，从左向右、从上往下布局
             updateLayoutStateToFillEnd(mAnchorInfo);
+            //增加额外填充空间，是的填充空间等于父View的可用空间
+            int extraFillSpace = orientationHelper.getTotalSpace() - layoutState.mAvailable;
+            if (extraFillSpace > 0) {
+                layoutState.mExtraFillSpace = extraFillSpace;
+            }
+            startOffset = mAnchorInfo.mCoordinate;
+            fill(recycler, layoutState, state, false);
+            endOffset = layoutState.mOffset;
         }
-        fill(recycler, layoutState, state, false);
-    }
 
+        // changes may cause gaps on the UI, try to fix them.
+        // TODO we can probably avoid this if neither stackFromEnd/reverseLayout/RTL values have
+        // changed
+        if (getChildCount() > 0 && configChange) {
+            // because layout from end may be changed by scroll to position
+            // we re-calculate it.
+            // find which side we should check for gaps.
+            if (mAnchorInfo.mLayoutFromEnd) {
+                //检测右边距离父View的右边界是否还有空隙，有的话，保持右侧边界对齐
+                fixLayoutEndGap(endOffset, recycler, state, true);
+            } else {
+                //检测左边距离父View的左边界是否还有空隙，有的话，保持左侧边界对齐
+                fixLayoutStartGap(startOffset, recycler, state, true);
+            }
+        }
+        orientationHelper.onLayoutComplete();
+    }
     @Override
     public void onLayoutCompleted(State state) {
         super.onLayoutCompleted(state);
         pendingSavedState = null; // we don't need this anymore
         pendingScrollPosition = RecyclerView.NO_POSITION;
+        configChange = false;
         mAnchorInfo.reset();
     }
 
@@ -401,20 +444,28 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
         if (updateAnchorFromPendingData(state, anchorInfo)) {
             return;
         }
+        if (updateAnchorFromChildren(state, anchorInfo)) {
+            return;
+        }
+        anchorInfo.mPosition = 0;
+        anchorInfo.assignCoordinateFromPadding();
+    }
+
+    private boolean updateAnchorFromChildren(RecyclerView.State state, AnchorInfo anchorInfo) {
+        if (getChildCount() == 0) {
+            return false;
+        }
+        final View focused = getFocusedChild();
+        if (focused != null && anchorInfo.isViewValidAsAnchor(focused, state)) {
+            anchorInfo.assignFromViewAndKeepVisibleRect(focused, getPosition(focused));
+            return true;
+        }
         View child = getChildAt(0);
         if (child != null) {
-            final View focused = getFocusedChild();
-            if (focused != null && anchorInfo.isViewValidAsAnchor(focused, state)) {
-                anchorInfo.assignFromViewAndKeepVisibleRect(focused, getPosition(focused));
-                return;
-            }
-            LayoutParams layoutParams = (LayoutParams) child.getLayoutParams();
-            int pageIndex = Math.min(getPageSize() - 1, layoutParams.pageIndex);
-            anchorInfo.mPosition = findPositionByPage(pageIndex);
-        } else {
-            anchorInfo.mPosition = 0;
+            anchorInfo.assignFromView(child, getPosition(child));
+            return true;
         }
-        anchorInfo.assignCoordinateFromPadding();
+        return false;
     }
 
     private boolean updateAnchorFromPendingData(State state, AnchorInfo anchorInfo) {
@@ -801,6 +852,58 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
         }
     }
 
+
+    private int fixLayoutEndGap(int endOffset, RecyclerView.Recycler recycler,
+                                RecyclerView.State state, boolean canOffsetChildren) {
+        int gap = orientationHelper.getEndAfterPadding() - endOffset;
+        int fixOffset = 0;
+        if (gap > 0) {
+            fixOffset = -scrollBy(-gap, recycler, state);
+        } else {
+            return 0; // nothing to fix
+        }
+        // move offset according to scroll amount
+        endOffset += fixOffset;
+        if (canOffsetChildren) {
+            // re-calculate gap, see if we could fix it
+            gap = orientationHelper.getEndAfterPadding() - endOffset;
+            if (gap > 0) {
+                orientationHelper.offsetChildren(gap);
+                return gap + fixOffset;
+            }
+        }
+        return fixOffset;
+    }
+
+    /**
+     * @return The final offset amount for children
+     */
+    private int fixLayoutStartGap(int startOffset, RecyclerView.Recycler recycler,
+                                  RecyclerView.State state, boolean canOffsetChildren) {
+        int gap = startOffset - orientationHelper.getStartAfterPadding();
+        int fixOffset = 0;
+        if (gap > 0) {
+            // check if we should fix this gap.
+            fixOffset = -scrollBy(gap, recycler, state);
+        } else {
+            return 0; // nothing to fix
+        }
+        startOffset += fixOffset;
+        if (canOffsetChildren) {
+            // re-calculate gap, see if we could fix it
+            gap = startOffset - orientationHelper.getStartAfterPadding();
+            if (gap > 0) {
+                orientationHelper.offsetChildren(-gap);
+                return fixOffset - gap;
+            }
+        }
+        return fixOffset;
+    }
+
+    private void updateLayoutStateToFillEnd(AnchorInfo anchorInfo) {
+        updateLayoutStateToFillEnd(anchorInfo.mPosition, anchorInfo.mCoordinate);
+    }
+
     private void updateLayoutStateToFillEnd(int position, int offset) {
         layoutState.mAvailable = orientationHelper.getEndAfterPadding() - offset;
         layoutState.mItemDirection = shouldReverseLayout ? LayoutState.ITEM_DIRECTION_HEAD
@@ -811,9 +914,14 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
         layoutState.mExtraFillSpace = 0;
         layoutState.mOffset = offset;
         layoutState.page = findPageByPosition(position);
-        layoutState.column = 0;
-        layoutState.row = 0;
+        int startPosition = findPositionByPage(layoutState.page);
+        layoutState.column = (position - startPosition) % columnCount;
+        layoutState.row = (position - startPosition) / columnCount;
         layoutState.mScrollingOffset = LayoutState.SCROLLING_OFFSET_NaN;
+    }
+
+    private void updateLayoutStateToFillStart(AnchorInfo anchorInfo) {
+        updateLayoutStateToFillStart(anchorInfo.mPosition, anchorInfo.mCoordinate);
     }
 
     private void updateLayoutStateToFillStart(int position, int offset) {
@@ -826,17 +934,10 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
         layoutState.mExtraFillSpace = 0;
         layoutState.mOffset = offset;
         layoutState.page = findPageByPosition(position);
-        layoutState.column = 0;
-        layoutState.row = 0;
+        int startPosition = findPositionByPage(layoutState.page);
+        layoutState.column = (position - startPosition) % columnCount;
+        layoutState.row = (position - startPosition) / columnCount;
         layoutState.mScrollingOffset = LayoutState.SCROLLING_OFFSET_NaN;
-    }
-
-    private void updateLayoutStateToFillEnd(AnchorInfo anchorInfo) {
-        updateLayoutStateToFillEnd(anchorInfo.mPosition, anchorInfo.mCoordinate);
-    }
-
-    private void updateLayoutStateToFillStart(AnchorInfo anchorInfo) {
-        updateLayoutStateToFillStart(anchorInfo.mPosition, anchorInfo.mCoordinate);
     }
 
     private int nextRow(int curRow, int spanSize) {
@@ -1342,6 +1443,7 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
                 OrientationHelper.createOrientationHelper(this, orientation);
             mAnchorInfo.mOrientationHelper = orientationHelper;
             this.orientation = orientation;
+            configChange = true;
             requestLayout();
         }
     }
