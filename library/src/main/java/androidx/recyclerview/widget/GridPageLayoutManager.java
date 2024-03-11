@@ -1906,7 +1906,7 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
                     if (positionEnd <= position) {
                         queueTailIndexes[i] -= itemCount;
                     } else {
-                        queueTailIndexes[i] -= positionEnd - position + 1;
+                        queueTailIndexes[i] -= positionEnd - position;
                     }
                     changed = true;
                 }
