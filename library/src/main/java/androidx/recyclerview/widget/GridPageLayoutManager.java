@@ -1015,9 +1015,8 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
     }
 
     private boolean isPageTail(int position) {
-        for (int i = pageBorders.length - 1; i >= 0; i--) {
-            int border = pageBorders[i];
-            if (position + 1 == border)
+        for (int headIndex : pageBorders) {
+            if (position == headIndex - 1)
                 return true;
         }
         return false;
@@ -1895,20 +1894,33 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
         }
 
         @Override
-        public final void onItemRangeRemoved(int positionStart, int itemCount) {
+        public final void onItemRangeRemoved(int positionStart, int removeCount) {
             if (queueTailIndexes == null) return;
-            int positionEnd = positionStart + itemCount;
+            int positionEnd = positionStart + removeCount; //remove [positionStart, positionEnd) range
             int length = queueTailIndexes.length;
             boolean changed = false;
             for (int i = 0; i < length; i++) {
                 int position = queueTailIndexes[i];
                 if (positionStart <= position) {
                     if (positionEnd <= position) {
-                        queueTailIndexes[i] -= itemCount;
+                        queueTailIndexes[i] -= removeCount;
                     } else {
                         queueTailIndexes[i] -= positionEnd - position;
                     }
                     changed = true;
+                }
+            }
+            boolean removeFromCurPageHead = pageBorders[currentPage] == positionStart;
+            //避免移除页头后，会显示上一页item问题
+            if (removeFromCurPageHead) {
+                int pageSize = getPageSize();
+                int totalCount = pageBorders[pageSize];
+                //计算当前页到最后一页item的数量(包含当前页数量)
+                int remainingCount = totalCount - pageBorders[currentPage];
+                if (remainingCount > removeCount) {
+                    pendingScrollPosition = positionStart;
+                } else if (currentPage > 0) {
+                    pendingScrollPosition = pageBorders[currentPage - 1];
                 }
             }
             if (changed) {
