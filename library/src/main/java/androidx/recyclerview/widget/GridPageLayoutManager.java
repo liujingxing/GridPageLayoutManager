@@ -1888,6 +1888,11 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
                     changed = true;
                 }
             }
+            boolean removeFromCurPageHead = pageBorders[currentPage] == positionStart;
+            //避免插入页头后，不显示页头问题
+            if (removeFromCurPageHead) {
+                pendingScrollPosition = positionStart;
+            }
             if (changed) {
                 updatePageBorders();
             }
