@@ -1883,7 +1883,8 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
             boolean changed = false;
             for (int i = 0; i < length; i++) {
                 int position = queueTailIndexes[i];
-                if (positionStart <= position || position == -1) {
+                if (positionStart <= position || position == -1
+                    || (i == length - 1 && position + 1 == positionStart)) {
                     queueTailIndexes[i] += itemCount;
                     changed = true;
                 }
