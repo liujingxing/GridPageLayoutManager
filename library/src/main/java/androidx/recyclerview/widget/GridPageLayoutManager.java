@@ -1888,6 +1888,11 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
                     changed = true;
                 }
             }
+            boolean insertPageHead = pageBorders[currentPage] == positionStart;
+            //避免插入页头后，不显示页头问题
+            if (insertPageHead) {
+                pendingScrollPosition = positionStart;
+            }
             if (changed) {
                 updatePageBorders();
             }
@@ -1910,9 +1915,9 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
                     changed = true;
                 }
             }
-            boolean removeFromCurPageHead = pageBorders[currentPage] == positionStart;
+            boolean removePageHead = pageBorders[currentPage] == positionStart;
             //避免移除页头后，会显示上一页item问题
-            if (removeFromCurPageHead) {
+            if (removePageHead) {
                 int pageSize = getPageSize();
                 int totalCount = pageBorders[pageSize];
                 //计算当前页到最后一页item的数量(包含当前页数量)
