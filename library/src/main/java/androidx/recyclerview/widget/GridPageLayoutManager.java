@@ -1879,21 +1879,13 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
             if (queueTailIndexes == null) {
                 queueTailIndexes = new int[]{-1};
             }
-            int length = queueTailIndexes.length;
-            boolean changed = false;
-            for (int i = 0; i < length; i++) {
-                int position = queueTailIndexes[i];
-                if (positionStart <= position || position == -1
-                    || (i == length - 1 && position + 1 == positionStart)) {
-                    queueTailIndexes[i] += itemCount;
-                    changed = true;
-                }
-            }
             boolean insertPageHead = pageBorders[currentPage] == positionStart;
             //避免插入页头后，不显示页头问题
             if (insertPageHead) {
                 pendingScrollPosition = positionStart;
             }
+
+            boolean changed = UtilsKt.rangeInsert(queueTailIndexes, positionStart, itemCount);
             if (changed) {
                 updatePageBorders();
             }
@@ -1902,20 +1894,6 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
         @Override
         public final void onItemRangeRemoved(int positionStart, int removeCount) {
             if (queueTailIndexes == null) return;
-            int positionEnd = positionStart + removeCount; //remove [positionStart, positionEnd) range
-            int length = queueTailIndexes.length;
-            boolean changed = false;
-            for (int i = 0; i < length; i++) {
-                int position = queueTailIndexes[i];
-                if (positionStart <= position) {
-                    if (positionEnd <= position) {
-                        queueTailIndexes[i] -= removeCount;
-                    } else {
-                        queueTailIndexes[i] -= positionEnd - position;
-                    }
-                    changed = true;
-                }
-            }
             boolean removePageHead = pageBorders[currentPage] == positionStart;
             //避免移除页头后，会显示上一页item问题
             if (removePageHead) {
@@ -1929,6 +1907,8 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
                     pendingScrollPosition = pageBorders[currentPage - 1];
                 }
             }
+
+            boolean changed = UtilsKt.rangeRemoved(queueTailIndexes, positionStart, removeCount);
             if (changed) {
                 updatePageBorders();
             }
