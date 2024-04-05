@@ -956,6 +956,10 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
         return setQueueInfo(lists, null);
     }
 
+    public int[] updateFullSpans(int[] fullSpanIndexes) {
+        return setQueueTails(queueTailIndexes, fullSpanIndexes);
+    }
+
     public int[] setQueueInfo(Collection<? extends Collection<?>> lists, int[] fullSpanIndexes) {
         int queueSize = lists.size();
         //记录每个队列尾部下标
