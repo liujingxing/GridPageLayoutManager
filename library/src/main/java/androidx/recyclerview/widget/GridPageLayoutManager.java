@@ -1889,10 +1889,10 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
                 pendingScrollPosition = positionStart;
             }
 
-            boolean changed = UtilsKt.rangeInsert(queueTailIndexes, positionStart, itemCount);
-            if (changed) {
-                updatePageBorders();
-            }
+//            boolean changed = UtilsKt.rangeInsert(queueTailIndexes, positionStart, itemCount);
+//            if (changed) {
+//                updatePageBorders();
+//            }
         }
 
         @Override
