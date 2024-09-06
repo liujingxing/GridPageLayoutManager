@@ -75,6 +75,7 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
      * 如[16, 33, 34], 代表有3个队列，每个队列的尾部item position分别为16，33，34
      */
     private int[] queueTailIndexes;
+    private final int[] pageRange = new int[]{-1, -1};
     private View[] viewSet;
     private GridPageSnapHelper pageSnapHelper;
     private ScrollEventAdapter scrollEventAdapter;
@@ -555,8 +556,9 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
         while (remainingSpace > 0 && curPage >= 0 && curPage < pageSize) {
             layoutChunkResult.resetInternal();
 
-            int fromPosition = findPositionByPage(curPage);
-            int toPosition = findPositionByPage(curPage + 1);
+            int[] range = findPageRange(curPage);
+            int fromPosition = range[0];
+            int toPosition = range[1];
             if (fullSpanArray.get(fromPosition) && toPosition - fromPosition == 1) {
                 layoutState.row = 0;
                 layoutState.column = 0;
@@ -634,8 +636,9 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
         int column = layoutState.getColumn();
         int spanCount = viewSet.length;
         int spanIndex = layingOutInPrimaryDirection ? 0 : spanCount - 1;
-        int fromPosition = findPositionByPage(page);
-        int toPosition = findPositionByPage(page + 1);
+        int[] range = findPageRange(page);
+        int fromPosition = range[0];
+        int toPosition = range[1];
         int count = 0;
         int consumedSpanSize = 1;
         while (spanIndex >= 0 && spanIndex < spanCount) {
@@ -1150,10 +1153,21 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
     }
 
     public int findPositionByPage(int page) {
-        if (page < 0 || page > pageBorders.length - 1) {
+        if (page < 0 || page > getPageSize() - 1) {
             return RecyclerView.NO_POSITION;
         }
         return pageBorders[page];
+    }
+
+    public int[] findPageRange(int page) {
+        if (page < 0 || page > getPageSize() - 1) {
+            pageRange[0] = RecyclerView.NO_POSITION;
+            pageRange[1] = RecyclerView.NO_POSITION;
+        } else {
+            pageRange[0] = pageBorders[page];
+            pageRange[1] = pageBorders[page + 1];
+        }
+        return pageRange;
     }
 
     public int findPageByPosition(int position) {
@@ -1294,7 +1308,14 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
                 + rowCount);
         }
         this.rowCount = rowCount;
+        int curPageFirstPosition = findPositionByPage(currentPage);
         updatePageBorders();
+        if (pageBorders != null && curPageFirstPosition != RecyclerView.NO_POSITION) {
+            int destPage = findPageByPosition(curPageFirstPosition);
+            currentPage = -1;
+            setCurrentItem(destPage, false, true);
+            return;
+        }
         requestLayout();
     }
 
@@ -1309,7 +1330,13 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
                 + columnCount);
         }
         this.columnCount = columnCount;
+        int curPageFirstPosition = findPositionByPage(currentPage);
         updatePageBorders();
+        if (pageBorders != null && curPageFirstPosition != RecyclerView.NO_POSITION) {
+            int destPage = findPageByPosition(curPageFirstPosition);
+            setCurrentItem(destPage, false, true);
+            return;
+        }
         requestLayout();
     }
 
@@ -1335,10 +1362,14 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
     }
 
     public void setCurrentItem(int pageIndex, boolean smoothScroll) {
+        setCurrentItem(pageIndex, smoothScroll, false);
+    }
+
+    public void setCurrentItem(int pageIndex, boolean smoothScroll, boolean forceRefresh) {
         if (pageIndex < 0 || pageIndex > getPageSize() - 1) {
             return;
         }
-        if (pageIndex == currentPage && scrollEventAdapter.isIdle()) {
+        if (pageIndex == currentPage && scrollEventAdapter.isIdle() && !forceRefresh) {
             return;
         }
 
@@ -1363,7 +1394,7 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
         }
     }
 
-    public void scrollToPage(int targetPage) {
+    private void scrollToPage(int targetPage) {
         if (pendingSavedState != null) {
             pendingSavedState.invalidateAnchor();
         }
@@ -1371,7 +1402,7 @@ public class GridPageLayoutManager extends LayoutManager implements ScrollVector
         requestLayout();
     }
 
-    public void smoothScrollToPage(int targetPage) {
+    private void smoothScrollToPage(int targetPage) {
         int position = findPositionByPage(targetPage);
         if (position == RecyclerView.NO_POSITION) return;
         GridPageLinearSmoothScroller smoothScroller = new GridPageLinearSmoothScroller(mRecyclerView.getContext(), this);

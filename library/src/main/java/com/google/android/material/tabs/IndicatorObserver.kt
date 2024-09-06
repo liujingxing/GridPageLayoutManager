@@ -21,6 +21,10 @@ class IndicatorObserver(
             indicatorView.setSliderCount(pageCount)
         }
 
+        override fun onPageSelected(page: Int) {
+            indicatorView.scrollSlider(page, 0f)
+        }
+
         override fun onPageScrolled(position: Int, offset: Float, offsetPixels: Int) {
             indicatorView.scrollSlider(position, offset)
         }
