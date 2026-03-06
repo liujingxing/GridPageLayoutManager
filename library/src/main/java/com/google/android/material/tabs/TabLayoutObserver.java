@@ -108,6 +108,7 @@ public final class TabLayoutObserver {
 
     @SuppressWarnings("WeakerAccess")
     void populateTabsFromPagerAdapter() {
+        int selectedTabPosition = tabLayout.getSelectedTabPosition();
         tabLayout.removeAllTabs();
 
         if (layoutManager != null) {
@@ -119,11 +120,8 @@ public final class TabLayoutObserver {
             }
             // Make sure we reflect the currently set ViewPager item
             if (adapterCount > 0) {
-                int lastItem = tabLayout.getTabCount() - 1;
-                int currItem = Math.min(layoutManager.getCurrentQueueItem(), lastItem);
-                if (currItem != tabLayout.getSelectedTabPosition()) {
-                    tabLayout.selectTab(tabLayout.getTabAt(currItem));
-                }
+                int index = selectedTabPosition < 0 || selectedTabPosition >= tabLayout.getTabCount() ? 0 : selectedTabPosition;
+                tabLayout.selectTab(tabLayout.getTabAt(index));
             }
         }
     }
